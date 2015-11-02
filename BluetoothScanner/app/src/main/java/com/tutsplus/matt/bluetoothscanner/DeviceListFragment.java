@@ -2,6 +2,11 @@ package com.tutsplus.matt.bluetoothscanner;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -13,10 +18,13 @@ import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.CompoundButton;
 import android.widget.ListAdapter;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
 import java.util.ArrayList;
+import java.util.Set;
 
 /**
  * A fragment representing a list of Items.
@@ -45,6 +53,21 @@ public class DeviceListFragment extends Fragment implements AbsListView.OnItemCl
      */
     private ArrayAdapter<DeviceItem> mAdapter;
 
+    private final BroadcastReceiver bReciever = new BroadcastReceiver() {
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+                Log.d("DEVICELIST", "Bluetooth device found\n");
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                // Create a new device item
+                DeviceItem newDevice = new DeviceItem(device.getName(), device.getAddress(), "false");
+                // Add it to our adapter
+                mAdapter.add(newDevice);
+                mAdapter.notifyDataSetChanged();
+            }
+        }
+    };
+
     // TODO: Rename and change types of parameters
     public static DeviceListFragment newInstance(BluetoothAdapter adapter) {
         DeviceListFragment fragment = new DeviceListFragment();
@@ -68,6 +91,12 @@ public class DeviceListFragment extends Fragment implements AbsListView.OnItemCl
         deviceItemList = new ArrayList<DeviceItem>();
 
         // TODO Scan for devices and add them to the list
+        Set<BluetoothDevice> pairedDevices = bTAdapter.getBondedDevices();
+
+        if (pairedDevices.size() > 0) for (BluetoothDevice device : pairedDevices) {
+            DeviceItem newDevice = new DeviceItem(device.getName(), device.getAddress(), "false");
+            deviceItemList.add(newDevice);
+        }
 
         // If there are no devices, add an item that states so. It will be handled in the view.
         if(deviceItemList.size() == 0) {
@@ -85,6 +114,7 @@ public class DeviceListFragment extends Fragment implements AbsListView.OnItemCl
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_deviceitem_list, container, false);
+        ToggleButton scan = (ToggleButton) view.findViewById(R.id.scan);
 
         // Set the adapter
         mListView = (AbsListView) view.findViewById(android.R.id.list);
@@ -92,6 +122,21 @@ public class DeviceListFragment extends Fragment implements AbsListView.OnItemCl
 
         // Set OnItemClickListener so we can be notified on item clicks
         mListView.setOnItemClickListener(this);
+
+
+        scan.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+                if (isChecked) {
+                    mAdapter.clear();
+                    getActivity().registerReceiver(bReciever, filter);
+                    bTAdapter.startDiscovery();
+                } else {
+                    getActivity().unregisterReceiver(bReciever);
+                    bTAdapter.cancelDiscovery();
+                }
+            }
+        });
 
         return view;
     }
