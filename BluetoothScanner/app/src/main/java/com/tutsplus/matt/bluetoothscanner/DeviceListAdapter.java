@@ -67,6 +67,11 @@ public class DeviceListAdapter extends ArrayAdapter<DeviceItem>{
         holder.titleText.setText(item.getDeviceName());
         macAddress.setText(item.getAddress());
 
+//        Deal with Many bluetooth devices don't have device name
+        if ( item.getDeviceName() == null) {
+            return viewToUse;
+        }
+
         if ( item.getDeviceName().toString() == "No Devices") {
             macAddress.setVisibility(View.INVISIBLE);
             line.setVisibility(View.INVISIBLE);
