@@ -3,6 +3,7 @@ package com.tutsplus.matt.bluetoothscanner;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothClass;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -25,6 +26,8 @@ import android.widget.ToggleButton;
 
 import java.util.ArrayList;
 import java.util.Set;
+import java.util.Iterator;
+import java.lang.Boolean;
 
 /**
  * A fragment representing a list of Items.
@@ -41,6 +44,8 @@ public class DeviceListFragment extends Fragment implements AbsListView.OnItemCl
 
     private OnFragmentInteractionListener mListener;
     private static BluetoothAdapter bTAdapter;
+
+    private ArrayList <BluetoothDevice>mPairedDevices;
 
     /**
      * The fragment's ListView/GridView.
@@ -96,6 +101,9 @@ public class DeviceListFragment extends Fragment implements AbsListView.OnItemCl
         if (pairedDevices.size() > 0) for (BluetoothDevice device : pairedDevices) {
             DeviceItem newDevice = new DeviceItem(device.getName(), device.getAddress(), "false");
             deviceItemList.add(newDevice);
+
+            // Devices are bonded, what's the concept
+            Log.d("BONDED_STATE", Boolean.toString(BluetoothDevice.BOND_BONDED == device.getBondState()));
         }
 
         // If there are no devices, add an item that states so. It will be handled in the view.

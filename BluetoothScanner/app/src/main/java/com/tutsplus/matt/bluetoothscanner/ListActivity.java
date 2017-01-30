@@ -2,9 +2,14 @@ package com.tutsplus.matt.bluetoothscanner;
 
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothManager;
+import android.bluetooth.BluetoothGatt;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.os.ParcelUuid;
 import android.preference.DialogPreference;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBarActivity;
@@ -12,15 +17,19 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import java.util.ArrayList;
+
 public class ListActivity extends ActionBarActivity implements DeviceListFragment.OnFragmentInteractionListener  {
 
 
     private DeviceListFragment mDeviceListFragment;
     private BluetoothAdapter BTAdapter;
 
-
     public static int REQUEST_BLUETOOTH = 1;
-    
+
+    // From blinky
+    private String mDeviceAddress;
+    private BluetoothGatt mBluetoothGatt;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +62,7 @@ public class ListActivity extends ActionBarActivity implements DeviceListFragmen
         mDeviceListFragment = DeviceListFragment.newInstance(BTAdapter);
         fragmentManager.beginTransaction().replace(R.id.container, mDeviceListFragment).commit();
 
+        final BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(BLUETOOTH_SERVICE);
     }
 
     @Override
